@@ -10,7 +10,7 @@
         "build": "npm run build:ts",
         "build:ts": "tsc --build",
         "clean": "tsc --build --clean",
-        "start": "node ./built/server"
+        "test": "node test.js"
     },
     "version": "0.0.1",
     "repository": {
