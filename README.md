@@ -24,12 +24,25 @@ sudo apt install xfce4 xfce4-goodies
 
 # Install XRDP
 sudo apt-get -y install xvfb
-
-# If you get errors regarding missing libraries, run this:
-sudo apt-get update
-sudo apt-get install ca-certificates fonts-liberation libappindicator3-1 libasound2 libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgcc1 libglib2.0-0 libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 lsb-release wget xdg-utils
 ```
-If you are following the Azure tutorial, please note that since Windows supports the "Remote Desktop Connection" app and MacOS doesn't have one natively. A solution would to install "Microsoft Remote Desktop" in the App Store and connect to your VPS's IP.
+If you are following the Azure tutorial, please note that since Windows supports the "Remote Desktop Connection" app and MacOS doesn't have one natively. A solution would to install "Microsoft Remote Desktop" in the App Store and connect to your VPS's IP.<br />
+### Common Errors
+As someone who HATES using Linux, here are some common errors I get:
+1. <b>"Cannot find Chromium"</b>
+    - Run `sudo apt-get install chromium-browser`.
+    - Find the `.cache/puppeteer` directory and copy the path.
+    - Create a `.puppeteerrc.cjs` file in your project directory.
+    - Follow the instructions [here](https://pptr.dev/guides/configuration) under the "Changing the default cache directory".
+2. <b>"Missing dependencies"</b>
+    - Just...
+    ```bash
+    sudo apt-get update
+    sudo apt-get install ca-certificates fonts-liberation libappindicator3-1 libasound2 libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgcc1 libglib2.0-0 libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 lsb-release wget xdg-utils
+    ```
+3. <b>"Missing Display X"</b>
+    - Install `xvfb`
+    - Connect to your VPS's IP via the "Remote Desktop Connection" application on Windows or install "Microsoft Remote Desktop" on MacOS.
+[This](https://stackoverflow.com/questions/59379842/error-when-installing-and-running-xrdp-remote-desktop-with-gnome-ubuntu-i-enc#:~:text=4%20Answers%201%201.%20Remove%20previously%20installed%20xrdp%3A,system%3A%20...%204%204.%20Firewall%20configuration%20%28optional%29%3A%20) is also very helpful.
 ## Using as a "Library"
 I'm sure people want to use this project as a library, but just be aware that headless browsers use up a <b>LOT</b> of memory and CPU power. Luckily, this project is meant to avoid the use of headless browsers as much as possible, but it is something to keep in mind. It is recommended that you use a higher-end VPS or hoster with at least 4GB of memory if not more.
 
