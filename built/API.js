@@ -9,7 +9,6 @@ const puppeteer_extra_plugin_stealth_1 = __importDefault(require("puppeteer-extr
 const tough_cookie_1 = require("tough-cookie");
 const axios_1 = __importDefault(require("axios"));
 const cheerio_1 = require("cheerio");
-const HCaptcha_1 = __importDefault(require("./HCaptcha"));
 class API {
     /**
      * @constructor
@@ -17,7 +16,6 @@ class API {
      * @param options Whether to use headless mode, skip chromium download, or specify a custom path to chromium
      */
     constructor(options = { headless: false, skip_chromium_download: false, chromium_path: "/usr/bin/chromium-browser" }) {
-        this.hcaptcha = new HCaptcha_1.default();
         this.requests = [];
         this.cookies = new tough_cookie_1.CookieJar();
         this.browser = null;
@@ -249,13 +247,6 @@ class API {
         const captchaURI = new URL(captcha);
         const captchaId = captchaURI.searchParams.get("render");
         const captchaKey = await this.solveCaptcha3(captchaId, anchorLink, url);
-        return captchaKey;
-    }
-    // Not working
-    // Credit to https://github.com/JimmyLaurent/hcaptcha-solver/
-    async solveHCaptcha(url, options) {
-        // https://accounts.hcaptcha.com/demo
-        const captchaKey = await this.hcaptcha.solveCaptcha(url, options);
         return captchaKey;
     }
     // Not working

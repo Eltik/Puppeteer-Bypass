@@ -29,7 +29,7 @@ sudo apt-get -y install xvfb
 sudo apt-get update
 sudo apt-get install ca-certificates fonts-liberation libappindicator3-1 libasound2 libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgcc1 libglib2.0-0 libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 lsb-release wget xdg-utils
 ```
-If you are following the Azure tutorial, please note that since Windows supports the "Remote Desktop Connection" app and MacOS doesn't have one natively, well if you're using Mac then I'm sorry. MacOS is trash. And I use a Mac. Yeah.
+If you are following the Azure tutorial, please note that since Windows supports the "Remote Desktop Connection" app and MacOS doesn't have one natively. A solution would to install "Microsoft Remote Desktop" in the App Store and connect to your VPS's IP.
 ## Using as a "Library"
 I'm sure people want to use this project as a library, but just be aware that headless browsers use up a <b>LOT</b> of memory and CPU power. Luckily, this project is meant to avoid the use of headless browsers as much as possible, but it is something to keep in mind. It is recommended that you use a higher-end VPS or hoster with at least 4GB of memory if not more.
 

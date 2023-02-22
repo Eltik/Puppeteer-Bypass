@@ -4,10 +4,8 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { CookieJar, Cookie } from 'tough-cookie';
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { load } from 'cheerio';
-import HCaptcha from './HCaptcha';
 
 export default class API {
-    private hcaptcha = new HCaptcha();
     private requests: Requests[] = [];
 
     private cookies: CookieJar = new CookieJar();
@@ -276,14 +274,6 @@ export default class API {
         const captchaURI = new URL(captcha);
         const captchaId = captchaURI.searchParams.get("render");
         const captchaKey = await this.solveCaptcha3(captchaId, anchorLink, url);
-        return captchaKey;
-    }
-
-    // Not working
-    // Credit to https://github.com/JimmyLaurent/hcaptcha-solver/
-    public async solveHCaptcha(url:string, options?: { gentleMode: boolean, timeoutInMs:number }) {
-        // https://accounts.hcaptcha.com/demo
-        const captchaKey = await this.hcaptcha.solveCaptcha(url, options);
         return captchaKey;
     }
 

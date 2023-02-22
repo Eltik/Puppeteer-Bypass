@@ -1,6 +1,5 @@
 import { AxiosRequestConfig, AxiosResponse } from "axios";
 export default class API {
-    private hcaptcha;
     private requests;
     private cookies;
     private options;
@@ -71,10 +70,6 @@ export default class API {
      * @returns Captcha Token
      */
     solveCaptcha3FromHTML(html: string, anchorLink: string, url: string): Promise<string>;
-    solveHCaptcha(url: string, options?: {
-        gentleMode: boolean;
-        timeoutInMs: number;
-    }): Promise<any>;
     solveTurnstile(url: string): Promise<any>;
     /**
      * UTILS

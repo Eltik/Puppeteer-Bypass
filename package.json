@@ -24,7 +24,6 @@
         "puppeteer": "^19.7.1",
         "puppeteer-extra": "^3.3.4",
         "puppeteer-extra-plugin-stealth": "^2.11.1",
-        "tough-cookie": "^4.1.2",
-        "vm2": "^3.9.14"
+        "tough-cookie": "^4.1.2"
     }
 }
