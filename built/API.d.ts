@@ -6,6 +6,7 @@ export default class API {
     private browser;
     /**
      * @constructor
+     * @description You will NEED to use non-headless mode. It doesn't work otherwise.
      * @param options Whether to use headless mode and/or skip chromium download
      */
     constructor(options?: Options);

@@ -13,9 +13,10 @@ export default class API {
 
     /**
      * @constructor
+     * @description You will NEED to use non-headless mode. It doesn't work otherwise.
      * @param options Whether to use headless mode and/or skip chromium download
      */
-    constructor(options: Options = { headless: true, skip_chromium_download: false }) {
+    constructor(options: Options = { headless: false, skip_chromium_download: false }) {
         this.options = options;
     }
 
@@ -24,6 +25,8 @@ export default class API {
      */
     public async init() {
         puppeteer.use(StealthPlugin());
+        
+        // These can be optimized more. I just put them here for now.
         const options = {
             headless: this.options.headless,
             args: ["--no-sandbox", "--disable-setuid-sandbox"],
@@ -35,6 +38,8 @@ export default class API {
         if (this.options.skip_chromium_download) {
             options["executablePath"] = "/usr/bin/chromium-browser";
         }
+
+        // Launches the browser
         this.browser = await puppeteer.launch(options as any);
     }
 
@@ -43,6 +48,7 @@ export default class API {
      */
     public async close() {
         await this.browser.close();
+        // Resets the browser variable so that if the object is used again, the browser will be re-initialized
         this.browser = null;
     }
 
@@ -179,6 +185,10 @@ export default class API {
             'User-Agent': userAgent, // Browser User-Agent
             "Cookie": cookieList.map((cookie) => `${cookie.key}=${cookie.value}`).join('; ') // Cookies as a string
         };
+
+        // No need to use that page anymore.
+        await page.close();
+
         return headers;
     }
 

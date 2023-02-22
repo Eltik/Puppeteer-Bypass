@@ -11,9 +11,10 @@ const axios_1 = __importDefault(require("axios"));
 class API {
     /**
      * @constructor
+     * @description You will NEED to use non-headless mode. It doesn't work otherwise.
      * @param options Whether to use headless mode and/or skip chromium download
      */
-    constructor(options = { headless: true, skip_chromium_download: false }) {
+    constructor(options = { headless: false, skip_chromium_download: false }) {
         this.requests = [];
         this.cookies = new tough_cookie_1.CookieJar();
         this.browser = null;
@@ -24,6 +25,7 @@ class API {
      */
     async init() {
         puppeteer_extra_1.default.use((0, puppeteer_extra_plugin_stealth_1.default)());
+        // These can be optimized more. I just put them here for now.
         const options = {
             headless: this.options.headless,
             args: ["--no-sandbox", "--disable-setuid-sandbox"],
@@ -35,6 +37,7 @@ class API {
         if (this.options.skip_chromium_download) {
             options["executablePath"] = "/usr/bin/chromium-browser";
         }
+        // Launches the browser
         this.browser = await puppeteer_extra_1.default.launch(options);
     }
     /**
@@ -42,6 +45,7 @@ class API {
      */
     async close() {
         await this.browser.close();
+        // Resets the browser variable so that if the object is used again, the browser will be re-initialized
         this.browser = null;
     }
     /**
@@ -170,6 +174,8 @@ class API {
             'User-Agent': userAgent,
             "Cookie": cookieList.map((cookie) => `${cookie.key}=${cookie.value}`).join('; ') // Cookies as a string
         };
+        // No need to use that page anymore.
+        await page.close();
         return headers;
     }
     /**
