@@ -3,8 +3,11 @@ import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { CookieJar, Cookie } from 'tough-cookie';
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
+import { load } from 'cheerio';
+import HCaptcha from './HCaptcha';
 
 export default class API {
+    private hcaptcha = new HCaptcha();
     private requests: Requests[] = [];
 
     private cookies: CookieJar = new CookieJar();
@@ -213,6 +216,139 @@ export default class API {
             domain: domain.startsWith('.') ? domain.substring(1) : domain,
             path
         });
+    }
+
+    /**
+     * @description Solves reCAPTCHA v3. Requires an anchor link that you can find in the network requests.
+     * @param key Captcha ID
+     * @param anchorLink Captcha anchor link. It's dependent to the site.
+     * @param url Main page URL
+     * @returns Captcha Token
+     */
+    public async solveCaptcha3(key: string, anchorLink: string, url: string): Promise<string> {
+        const uri = new URL(url);
+        const domain = uri.protocol + '//' + uri.host;
+
+        const { data } = await this.request(`https://www.google.com/recaptcha/api.js?render=${key}`, {
+            headers: {
+                Referer: domain,
+            },
+        });
+
+        const v = data.substring(data.indexOf('/releases/'), data.lastIndexOf('/recaptcha')).split('/releases/')[1];
+
+        // ANCHOR IS SPECIFIC TO SITE
+        const curK = anchorLink.split('k=')[1].split('&')[0];
+        const curV = anchorLink.split("v=")[1].split("&")[0];
+
+        const anchor = anchorLink.replace(curK, key).replace(curV, v);
+
+        const req = await this.request(anchor);
+        const $ = load(req.data);
+        const reCaptchaToken = $('input[id="recaptcha-token"]').attr('value')
+
+        if (!reCaptchaToken) throw new Error('reCaptcha token not found')
+
+        return reCaptchaToken;
+    }
+
+    /**
+     * @description Solves reCAPTCHA v3 via HTML. Requires an anchor link that you can find in the network requests.
+     * @param html HTML to solve the captcha from
+     * @param anchorLink Captcha anchor link. It's dependent to the site.
+     * @param url Main page URL
+     * @returns Captcha Token
+     */
+    public async solveCaptcha3FromHTML(html: string, anchorLink: string, url:string): Promise<string> {
+        const $ = load(html);
+
+        let captcha = null;
+        $("script").map((index, element) => {
+            if ($(element).attr("src") != undefined && $(element).attr("src").includes("/recaptcha/")) {
+                captcha = $(element).attr("src");
+            }
+        })
+
+        if (!captcha) {
+            throw new Error("Couldn't fetch captcha.");
+        }
+
+        const captchaURI = new URL(captcha);
+        const captchaId = captchaURI.searchParams.get("render");
+        const captchaKey = await this.solveCaptcha3(captchaId, anchorLink, url);
+        return captchaKey;
+    }
+
+    // Not working
+    // Credit to https://github.com/JimmyLaurent/hcaptcha-solver/
+    public async solveHCaptcha(url:string, options?: { gentleMode: boolean, timeoutInMs:number }) {
+        // https://accounts.hcaptcha.com/demo
+        const captchaKey = await this.hcaptcha.solveCaptcha(url, options);
+        return captchaKey;
+    }
+
+    // Not working
+    public async solveTurnstile(url:string) {
+        /*
+        const { data } = await this.request(url);
+        const $ = load(data);
+        console.log($("div.cf-turnstile").attr("data-sitekey"));
+        const turnstile = $("div.cf-turnstile").attr("date-sitekey");
+        if (!turnstile) {
+            throw new Error("Couldn't fetch turnstile.");
+        }
+        */
+        const turnstile = "1x00000000000000000000AA";
+        // Todo
+        const req = await axios.post(`https://api.cloudflareclient.com/v0a${turnstile}/reg`, {
+            "key": `${turnstile}`,
+            "install_id": "00000000-0000-0000-0000-000000000000",
+            "fcm_token": `${turnstile}:APA91b${turnstile}`,
+            "referrer": "https://www.cloudflare.com",
+            "warp_enabled": false,
+            "tos": new Date().toISOString().slice(0, 10),
+            "type": "Android",
+            "locale": "en-US"
+        });
+        return null;
+    }
+
+    /**
+     * UTILS
+     */
+
+    /**
+     * @description Randomizes a number from a range
+     * @param start Max
+     * @param end Min
+     * @returns number
+     */
+    public static randomFromRange(start:number, end:number): number {
+        return Math.round(Math.random() * (end - start) + start);
+    }
+
+
+    /**
+     * @description Random true/false as a string
+     * @returns Random true or false as a string
+     */
+    public static randomTrueFalse(): string {
+        return API.randomFromRange(0, 1) ? 'true' : 'false';
+    }  
+    
+    /**
+     * @description Waits for a specified amount of time
+     * @param time Time in ms
+     * @returns void
+     */
+    public static async wait(time:number) {
+        return new Promise(resolve => {
+            setTimeout(resolve, time);
+        });
+    }
+
+    public static uuid(a?:any) {
+        return a ? (a ^ ((Math.random() * 16) >> (a / 4))).toString(16) : ([1e7] as any + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, API.uuid);
     }
 }
 

@@ -1,5 +1,6 @@
 import { AxiosRequestConfig, AxiosResponse } from "axios";
 export default class API {
+    private hcaptcha;
     private requests;
     private cookies;
     private options;
@@ -54,6 +55,49 @@ export default class API {
      * @returns Cookie
      */
     private toToughCookie;
+    /**
+     * @description Solves reCAPTCHA v3. Requires an anchor link that you can find in the network requests.
+     * @param key Captcha ID
+     * @param anchorLink Captcha anchor link. It's dependent to the site.
+     * @param url Main page URL
+     * @returns Captcha Token
+     */
+    solveCaptcha3(key: string, anchorLink: string, url: string): Promise<string>;
+    /**
+     * @description Solves reCAPTCHA v3 via HTML. Requires an anchor link that you can find in the network requests.
+     * @param html HTML to solve the captcha from
+     * @param anchorLink Captcha anchor link. It's dependent to the site.
+     * @param url Main page URL
+     * @returns Captcha Token
+     */
+    solveCaptcha3FromHTML(html: string, anchorLink: string, url: string): Promise<string>;
+    solveHCaptcha(url: string, options?: {
+        gentleMode: boolean;
+        timeoutInMs: number;
+    }): Promise<any>;
+    solveTurnstile(url: string): Promise<any>;
+    /**
+     * UTILS
+     */
+    /**
+     * @description Randomizes a number from a range
+     * @param start Max
+     * @param end Min
+     * @returns number
+     */
+    static randomFromRange(start: number, end: number): number;
+    /**
+     * @description Random true/false as a string
+     * @returns Random true or false as a string
+     */
+    static randomTrueFalse(): string;
+    /**
+     * @description Waits for a specified amount of time
+     * @param time Time in ms
+     * @returns void
+     */
+    static wait(time: number): Promise<unknown>;
+    static uuid(a?: any): any;
 }
 interface Options {
     headless?: boolean;
