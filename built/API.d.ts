@@ -7,7 +7,7 @@ export default class API {
     /**
      * @constructor
      * @description You will NEED to use non-headless mode. It doesn't work otherwise.
-     * @param options Whether to use headless mode and/or skip chromium download
+     * @param options Whether to use headless mode, skip chromium download, or specify a custom path to chromium
      */
     constructor(options?: Options);
     /**
@@ -58,5 +58,6 @@ export default class API {
 interface Options {
     headless?: boolean;
     skip_chromium_download?: boolean;
+    chromium_path?: string;
 }
 export {};

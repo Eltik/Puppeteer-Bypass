@@ -14,7 +14,7 @@ git clone https://github.com/Eltik/Puppeteer-Bypass.git
 3. If necessary, download [Google Chrome](https://www.google.com/chrome/) (this version uses Chromium which comes with Google Chrome, but you can create a pull request/fork to use Firefox/Edge).
 4. To test out the project, run `npm run test` to send a request to [JustLightNovels](https://www.justlightnovels.com/) which as of now (2/17/2023) has CloudFlare's "Under Attack Mode" on.<br />
 
-For installing this on Linux, make sure you have Chromium and VNC/xorg installed. The reason for this is that this bypass will NOT work with a proper window/GUI application installed. The below will show you how to install VNC server for Linux specifically as that's what I used to get this working on my VPS. You can follow [this tutorial](https://learn.microsoft.com/en-us/azure/virtual-machines/linux/use-remote-desktop?tabs=azure-cli) to help install a GUI for Linux.
+For installing this on Linux, make sure you have Chromium and VNC/xorg installed. The reason for this is that this bypass will NOT work with a proper window/GUI application installed. The below will show you how to install VNC server for Linux specifically as that's what I used to get this working on my VPS. You can follow [this tutorial](https://learn.microsoft.com/en-us/azure/virtual-machines/linux/use-remote-desktop?tabs=azure-cli) to help install a GUI for Linux if you're using Windows. The following will show you some basic stuff that I recommend personally for installing a custom GUI.
 ```bash
 # Install Chromium Browser
 sudo apt-get install chromium-browser
@@ -23,15 +23,11 @@ sudo apt-get install chromium-browser
 sudo apt install xfce4 xfce4-goodies
 
 # Install XRDP
-sudo apt-get -y install xrdp
-sudo systemctl enable xrdp
-
-# On Ubuntu 20, you need to add certificate access to an xrdp user
-sudo adduser xrdp ssl-cert
+sudo apt-get -y install xvfb
 
 # If you get errors regarding missing libraries, run this:
 sudo apt-get update
-sudo apt-get install -y libgbm-dev
+sudo apt-get install ca-certificates fonts-liberation libappindicator3-1 libasound2 libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgcc1 libglib2.0-0 libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 lsb-release wget xdg-utils
 ```
 If you are following the Azure tutorial, please note that since Windows supports the "Remote Desktop Connection" app and MacOS doesn't have one natively, well if you're using Mac then I'm sorry. MacOS is trash. And I use a Mac. Yeah.
 ## Using as a "Library"

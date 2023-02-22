@@ -14,9 +14,9 @@ export default class API {
     /**
      * @constructor
      * @description You will NEED to use non-headless mode. It doesn't work otherwise.
-     * @param options Whether to use headless mode and/or skip chromium download
+     * @param options Whether to use headless mode, skip chromium download, or specify a custom path to chromium
      */
-    constructor(options: Options = { headless: false, skip_chromium_download: false }) {
+    constructor(options: Options = { headless: false, skip_chromium_download: false, chromium_path: "/usr/bin/chromium-browser" }) {
         this.options = options;
     }
 
@@ -33,10 +33,13 @@ export default class API {
             ignoreHTTPSErrors: true,
             defaultViewport: null,
             ignoreDefaultArgs: ["--disable-extensions"],
-            executablePath: executablePath()
+            executablePath: executablePath(),
+            env: {
+                DISPLAY: ":10.0",
+            }
         }
         if (this.options.skip_chromium_download) {
-            options["executablePath"] = "/usr/bin/chromium-browser";
+            options["executablePath"] = this.options.chromium_path;
         }
 
         // Launches the browser
@@ -216,6 +219,7 @@ export default class API {
 interface Options {
     headless?: boolean;
     skip_chromium_download?: boolean;
+    chromium_path?: string;
 }
 
 interface Requests {
