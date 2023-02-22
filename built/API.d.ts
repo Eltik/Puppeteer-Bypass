@@ -7,7 +7,10 @@ export default class API {
     /**
      * @constructor
      * @description You will NEED to use non-headless mode. It doesn't work otherwise.
-     * @param options Whether to use headless mode, skip chromium download, or specify a custom path to chromium
+     * @param headless Whether to use healdess mode or not. This is required to be false, but for testing you can set it to true.
+     * @param skip_chromium_download Whether to skip downloading Chromium. If you're using a VPS, you can set this to true and set the path to the Chromium binary.
+     * @param chromium_path Path to the Chromium binary. Only used if skip_chromium_download is true.
+     * @param wait_for_network_idle Whether to wait for the network to be idle before returning the response. This is useful for sites that use AJAX to load content.
      */
     constructor(options?: Options);
     /**
@@ -54,49 +57,12 @@ export default class API {
      * @returns Cookie
      */
     private toToughCookie;
-    /**
-     * @description Solves reCAPTCHA v3. Requires an anchor link that you can find in the network requests.
-     * @param key Captcha ID
-     * @param anchorLink Captcha anchor link. It's dependent to the site.
-     * @param url Main page URL
-     * @returns Captcha Token
-     */
-    solveCaptcha3(key: string, anchorLink: string, url: string): Promise<string>;
-    /**
-     * @description Solves reCAPTCHA v3 via HTML. Requires an anchor link that you can find in the network requests.
-     * @param html HTML to solve the captcha from
-     * @param anchorLink Captcha anchor link. It's dependent to the site.
-     * @param url Main page URL
-     * @returns Captcha Token
-     */
-    solveCaptcha3FromHTML(html: string, anchorLink: string, url: string): Promise<string>;
-    solveTurnstile(url: string): Promise<any>;
-    /**
-     * UTILS
-     */
-    /**
-     * @description Randomizes a number from a range
-     * @param start Max
-     * @param end Min
-     * @returns number
-     */
-    static randomFromRange(start: number, end: number): number;
-    /**
-     * @description Random true/false as a string
-     * @returns Random true or false as a string
-     */
-    static randomTrueFalse(): string;
-    /**
-     * @description Waits for a specified amount of time
-     * @param time Time in ms
-     * @returns void
-     */
-    static wait(time: number): Promise<unknown>;
-    static uuid(a?: any): any;
+    private wait;
 }
 interface Options {
     headless?: boolean;
     skip_chromium_download?: boolean;
     chromium_path?: string;
+    wait_for_network_idle?: boolean;
 }
 export {};

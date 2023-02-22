@@ -3,7 +3,6 @@ import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { CookieJar, Cookie } from 'tough-cookie';
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
-import { load } from 'cheerio';
 
 export default class API {
     private requests: Requests[] = [];
@@ -15,9 +14,12 @@ export default class API {
     /**
      * @constructor
      * @description You will NEED to use non-headless mode. It doesn't work otherwise.
-     * @param options Whether to use headless mode, skip chromium download, or specify a custom path to chromium
+     * @param headless Whether to use healdess mode or not. This is required to be false, but for testing you can set it to true.
+     * @param skip_chromium_download Whether to skip downloading Chromium. If you're using a VPS, you can set this to true and set the path to the Chromium binary.
+     * @param chromium_path Path to the Chromium binary. Only used if skip_chromium_download is true.
+     * @param wait_for_network_idle Whether to wait for the network to be idle before returning the response. This is useful for sites that use AJAX to load content.
      */
-    constructor(options: Options = { headless: false, skip_chromium_download: false, chromium_path: "/usr/bin/chromium-browser" }) {
+    constructor(options: Options = { headless: false, skip_chromium_download: false, chromium_path: "/usr/bin/chromium-browser", wait_for_network_idle: false }) {
         this.options = options;
     }
 
@@ -154,16 +156,27 @@ export default class API {
             await this.init();
         }
         const page = await this.browser.newPage();
-        await page.goto(url);
+        await page.setDefaultNavigationTimeout(0);
+        await page.goto(url, { waitUntil: "load", timeout: 0 });
 
         // Basic timeout
-        const timeoutInMs = 16000;
+        // There's an env variable for this if you want to change it
+        const timeoutInMs = Number(process.env.PUP_TIMEOUT) || 16000;
 
         // Update the HTML content until the CloudFlare challenge loads
         let count = 1;
         let content = '';
         while (content == '' || this.isCloudflareJSChallenge(content)) {
-            await page.waitForNetworkIdle({ timeout: timeoutInMs });
+            // Scuffed code.
+            // Basically it will wait for the network to be idle, then get the HTML content and
+            // cbeck if it's a CloudFlare challenge. If it is, it will try again.
+            if (this.options.wait_for_network_idle) {
+                // Sometimes with slow VPS's/computers, the network will never be idle, so this will timeout
+                await page.waitForNetworkIdle({ timeout: timeoutInMs });   
+            } else {
+                // Wait for a second
+                await this.wait(1000);
+            }
             content = await page.content();
             // Sometimes there is a captcha or the browser gets stuck, so an error will be thrown in that case
             if (count++ > 10) {
@@ -216,129 +229,10 @@ export default class API {
         });
     }
 
-    /**
-     * @description Solves reCAPTCHA v3. Requires an anchor link that you can find in the network requests.
-     * @param key Captcha ID
-     * @param anchorLink Captcha anchor link. It's dependent to the site.
-     * @param url Main page URL
-     * @returns Captcha Token
-     */
-    public async solveCaptcha3(key: string, anchorLink: string, url: string): Promise<string> {
-        const uri = new URL(url);
-        const domain = uri.protocol + '//' + uri.host;
-
-        const { data } = await this.request(`https://www.google.com/recaptcha/api.js?render=${key}`, {
-            headers: {
-                Referer: domain,
-            },
-        });
-
-        const v = data.substring(data.indexOf('/releases/'), data.lastIndexOf('/recaptcha')).split('/releases/')[1];
-
-        // ANCHOR IS SPECIFIC TO SITE
-        const curK = anchorLink.split('k=')[1].split('&')[0];
-        const curV = anchorLink.split("v=")[1].split("&")[0];
-
-        const anchor = anchorLink.replace(curK, key).replace(curV, v);
-
-        const req = await this.request(anchor);
-        const $ = load(req.data);
-        const reCaptchaToken = $('input[id="recaptcha-token"]').attr('value')
-
-        if (!reCaptchaToken) throw new Error('reCaptcha token not found')
-
-        return reCaptchaToken;
-    }
-
-    /**
-     * @description Solves reCAPTCHA v3 via HTML. Requires an anchor link that you can find in the network requests.
-     * @param html HTML to solve the captcha from
-     * @param anchorLink Captcha anchor link. It's dependent to the site.
-     * @param url Main page URL
-     * @returns Captcha Token
-     */
-    public async solveCaptcha3FromHTML(html: string, anchorLink: string, url:string): Promise<string> {
-        const $ = load(html);
-
-        let captcha = null;
-        $("script").map((index, element) => {
-            if ($(element).attr("src") != undefined && $(element).attr("src").includes("/recaptcha/")) {
-                captcha = $(element).attr("src");
-            }
-        })
-
-        if (!captcha) {
-            throw new Error("Couldn't fetch captcha.");
-        }
-
-        const captchaURI = new URL(captcha);
-        const captchaId = captchaURI.searchParams.get("render");
-        const captchaKey = await this.solveCaptcha3(captchaId, anchorLink, url);
-        return captchaKey;
-    }
-
-    // Not working
-    public async solveTurnstile(url:string) {
-        /*
-        const { data } = await this.request(url);
-        const $ = load(data);
-        console.log($("div.cf-turnstile").attr("data-sitekey"));
-        const turnstile = $("div.cf-turnstile").attr("date-sitekey");
-        if (!turnstile) {
-            throw new Error("Couldn't fetch turnstile.");
-        }
-        */
-        const turnstile = "1x00000000000000000000AA";
-        // Todo
-        const req = await axios.post(`https://api.cloudflareclient.com/v0a${turnstile}/reg`, {
-            "key": `${turnstile}`,
-            "install_id": "00000000-0000-0000-0000-000000000000",
-            "fcm_token": `${turnstile}:APA91b${turnstile}`,
-            "referrer": "https://www.cloudflare.com",
-            "warp_enabled": false,
-            "tos": new Date().toISOString().slice(0, 10),
-            "type": "Android",
-            "locale": "en-US"
-        });
-        return null;
-    }
-
-    /**
-     * UTILS
-     */
-
-    /**
-     * @description Randomizes a number from a range
-     * @param start Max
-     * @param end Min
-     * @returns number
-     */
-    public static randomFromRange(start:number, end:number): number {
-        return Math.round(Math.random() * (end - start) + start);
-    }
-
-
-    /**
-     * @description Random true/false as a string
-     * @returns Random true or false as a string
-     */
-    public static randomTrueFalse(): string {
-        return API.randomFromRange(0, 1) ? 'true' : 'false';
-    }  
-    
-    /**
-     * @description Waits for a specified amount of time
-     * @param time Time in ms
-     * @returns void
-     */
-    public static async wait(time:number) {
+    private async wait(time:number) {
         return new Promise(resolve => {
             setTimeout(resolve, time);
         });
-    }
-
-    public static uuid(a?:any) {
-        return a ? (a ^ ((Math.random() * 16) >> (a / 4))).toString(16) : ([1e7] as any + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, API.uuid);
     }
 }
 
@@ -346,6 +240,7 @@ interface Options {
     headless?: boolean;
     skip_chromium_download?: boolean;
     chromium_path?: string;
+    wait_for_network_idle?: boolean;
 }
 
 interface Requests {
