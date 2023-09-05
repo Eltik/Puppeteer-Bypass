@@ -150,8 +150,7 @@ class API {
             await this.init();
         }
         const page = await this.browser.newPage();
-        await page.setDefaultNavigationTimeout(0);
-        await page.goto(url, { waitUntil: "load", timeout: 0 });
+        await page.goto(url);
         // Basic timeout
         // There's an env variable for this if you want to change it
         const timeoutInMs = Number(process.env.PUP_TIMEOUT) || 16000;

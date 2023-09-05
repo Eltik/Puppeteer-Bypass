@@ -1,3 +1,22 @@
+<h3>
+        <h3>CapSolver.com</h3>
+        <br>
+        <a href="https://dashboard.capsolver.com/passport/register?inviteCode=G2QOL-c1l_7z">
+            <img src="https://cdn.discordapp.com/attachments/1105172394655625306/1105180101802471575/20221207-160749.gif" alt="Capsolver's Banner">
+        </a>
+</h3>
+[Capsolver‘s automatic captcha solver offers the most affordable and quick captcha-solving solution. You may rapidly combine it with your program using its simple integration option to achieve the best results in a matter of seconds.](https://www.capsolver.com/)
+With a success rate of 99.15%, Capsolver can answer more than 10M captchas every minute. This implies that your automation or scrape will have a 99.99% uptime. You may buy a captcha package if you have a large budget.
+
+At the lowest price on the market, you may receive a variety of solutions, including reCAPTCHA V2, reCAPTCHA V3, hCaptcha, hCaptcha Click, reCaptcha click, Funcaptcha Click, FunCaptcha, aws captcha, picture-to-text, cloudflare, imperva/incapsula, akamai web/bmp, and more. With this service, 0.1s is the slowest speed ever measured.
+
+**Features that are unique on capsolver and are working perfectly :white_check_mark:**:
+- Datadome Captcha Token. Read this [blog](https://www.capsolver.com/blog/how-to-solve-datadome)
+- AWS Captcha Token. Read this [blog](https://www.capsolver.com/blog/how-to-solve-aws-amazon-captcha-token)
+- hCaptcha Enterprise Token. Read this [blog](https://www.capsolver.com/blog/how-to-solve-hcaptcha-enterprise)
+- reCaptcha v3 / v3 enterprise with 0.9 scores Token. Read this [blog](https://www.capsolver.com/blog/how-to-solve-reCAPTCHA-v3)
+- reCaptcha v2 Enterprise Token. Read this [blog](https://www.capsolver.com/blog/How-to-bypass-all-the-versions-reCAPTCHA-v2-v3)
+
 # Puppeteer-Bypass
 Bypassing CloudFlare's anti-bot challenge with a new optimized method.
 

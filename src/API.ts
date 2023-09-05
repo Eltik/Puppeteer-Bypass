@@ -156,8 +156,7 @@ export default class API {
             await this.init();
         }
         const page = await this.browser.newPage();
-        await page.setDefaultNavigationTimeout(0);
-        await page.goto(url, { waitUntil: "load", timeout: 0 });
+        await page.goto(url);
 
         // Basic timeout
         // There's an env variable for this if you want to change it
@@ -176,6 +175,9 @@ export default class API {
             } else {
                 // Wait for a second
                 await this.wait(1000);
+            }
+            if (!page) {
+                throw new Error('Page is null!');
             }
             content = await page.content();
             // Sometimes there is a captcha or the browser gets stuck, so an error will be thrown in that case
