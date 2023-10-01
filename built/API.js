@@ -7,7 +7,7 @@ const puppeteer_1 = require("puppeteer");
 const puppeteer_extra_1 = __importDefault(require("puppeteer-extra"));
 const puppeteer_extra_plugin_stealth_1 = __importDefault(require("puppeteer-extra-plugin-stealth"));
 const tough_cookie_1 = require("tough-cookie");
-const axios_1 = __importDefault(require("axios"));
+const promises_1 = require("node:timers/promises");
 class API {
     /**
      * @constructor
@@ -17,7 +17,7 @@ class API {
      * @param chromium_path Path to the Chromium binary. Only used if skip_chromium_download is true.
      * @param wait_for_network_idle Whether to wait for the network to be idle before returning the response. This is useful for sites that use AJAX to load content.
      */
-    constructor(options = { headless: false, skip_chromium_download: false, chromium_path: "/usr/bin/chromium-browser", wait_for_network_idle: false }) {
+    constructor(options = { headless: false, skip_chromium_download: false, chromium_path: '/usr/bin/chromium-browser', wait_for_network_idle: false }) {
         this.requests = [];
         this.cookies = new tough_cookie_1.CookieJar();
         this.browser = null;
@@ -31,17 +31,17 @@ class API {
         // These can be optimized more. I just put them here for now.
         const options = {
             headless: this.options.headless,
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
             ignoreHTTPSErrors: true,
             defaultViewport: null,
-            ignoreDefaultArgs: ["--disable-extensions"],
+            ignoreDefaultArgs: ['--disable-extensions'],
             executablePath: (0, puppeteer_1.executablePath)(),
             env: {
-                DISPLAY: ":10.0",
+                DISPLAY: ':10.0',
             }
         };
         if (this.options.skip_chromium_download) {
-            options["executablePath"] = this.options.chromium_path;
+            options['executablePath'] = this.options.chromium_path;
         }
         // Launches the browser
         this.browser = await puppeteer_extra_1.default.launch(options);
@@ -57,57 +57,59 @@ class API {
     /**
      * @description First checks if there are any valid cookies for the URL requested. If not, it will request the URL and get the cookies using Puppeteer. If there are valid cookies, it will use those cookies to make the request.
      * @param url Request URL
-     * @param options Axios config. Be careful of of using a custom User-Agent/Cookie header, as it will be overwritten.
-     * @returns Promise<AxiosResponse>
+     * @param options RequestInit config. Be careful of of using a custom User-Agent/Cookie header, as it will be overwritten.
+     * @returns Promise<string>
      */
     async request(url, options = { headers: {} }) {
         // First check if the request is stored in the object
         const possible = this.getRequest(url);
         if (!possible) {
-            const check = await (0, axios_1.default)(url, options).catch((err) => {
-                // If the request fails, check if it's due to a CloudFlare challenge
-                if (this.isCloudflareJSChallenge(err.response.data)) {
-                    // If it is, this means that we need to fetch new headers.
-                    return null;
-                }
-            });
-            if (!check) {
-                // Fetch headers needed to bypass CloudFlare.
-                const headers = await this.getHeaders(url);
-                this.requests.push({
-                    url: url,
-                    options: options,
-                    cookies: headers.Cookie,
-                    userAgent: headers['User-Agent']
-                });
-                options.headers["User-Agent"] = headers['User-Agent'];
-                options.headers["Cookie"] = headers['Cookie'];
-                // Send a request with the headers
-                const response = await (0, axios_1.default)(url, options);
-                return response;
-            }
-            else {
+            const response = await fetch(url, options);
+            const content = await response.text();
+            if (!this.isCloudflareJSChallenge(content)) {
                 // No need to fetch headers, just return the response
-                return check;
+                return {
+                    content,
+                    statusCode: response.status,
+                    headers: response.headers,
+                };
             }
-        }
-        else {
-            // Set the headers/cookies to the stored request
-            options.headers["User-Agent"] = possible.userAgent;
-            options.headers["Cookie"] = possible.cookies;
-            // Try to send the request
-            const response = await (0, axios_1.default)(url, options).catch((err) => {
-                const body = err.response.data;
-                // Check if the error is due to a CloudFlare challenge
-                if (this.isCloudflareJSChallenge(body)) {
-                    // If it is, remove the request (it's invalid)
-                    this.removeRequest(url);
-                    // Try to send the request again with new headers
-                    return this.request(url, options);
-                }
+            // Fetch headers needed to bypass CloudFlare.
+            const headers = await this.getHeaders(url);
+            this.requests.push({
+                url: url,
+                options: options,
+                cookies: headers.Cookie,
+                userAgent: headers['User-Agent']
             });
-            return response;
+            options.headers['User-Agent'] = headers['User-Agent'];
+            options.headers['Cookie'] = headers['Cookie'];
+            // Send a request with the headers
+            const responseWithHeaders = await fetch(url, options);
+            return {
+                content: await responseWithHeaders.text(),
+                statusCode: responseWithHeaders.status,
+                headers: responseWithHeaders.headers,
+            };
         }
+        // Set the headers/cookies to the stored request
+        options.headers['User-Agent'] = possible.userAgent;
+        options.headers['Cookie'] = possible.cookies;
+        // Try to send the request
+        const response = await fetch(url, options);
+        const content = await response.text();
+        // Check if the error is due to a CloudFlare challenge
+        if (this.isCloudflareJSChallenge(content)) {
+            // If it is, remove the request (it's invalid)
+            this.removeRequest(url);
+            // Try to send the request again with new headers
+            return this.request(url, options);
+        }
+        return {
+            content,
+            statusCode: response.status,
+            headers: response.headers,
+        };
     }
     /**
      * @description Checks if there is a request object for the URL
@@ -115,18 +117,15 @@ class API {
      * @returns Requests object if found, otherwise undefined
      */
     getRequest(url) {
-        const request = this.requests.find((request) => request.url == url);
-        if (request) {
-            return request;
-        }
+        return this.requests.find((request) => request.url === url);
     }
     /**
      * @description Removes a request object from the requests array
      * @param url URL to remove from the requests array
      */
     removeRequest(url) {
-        const index = this.requests.findIndex((request) => request.url == url);
-        if (index > -1) {
+        const index = this.requests.findIndex((request) => request.url === url);
+        if (index !== -1) {
             this.requests.splice(index, 1);
         }
     }
@@ -141,7 +140,7 @@ class API {
     /**
      * @description Gets the headers for the URL requested to bypass CloudFlare
      * @param url URL to fetch
-     * @returns Promise<{ "User-Agent": string, "Cookie": string }>
+     * @returns Promise<{ 'User-Agent': string, 'Cookie': string }>
      */
     async getHeaders(url) {
         // Check if the browser is open or not
@@ -157,7 +156,7 @@ class API {
         // Update the HTML content until the CloudFlare challenge loads
         let count = 1;
         let content = '';
-        while (content == '' || this.isCloudflareJSChallenge(content)) {
+        while (content === '' || this.isCloudflareJSChallenge(content)) {
             // Scuffed code.
             // Basically it will wait for the network to be idle, then get the HTML content and
             // cbeck if it's a CloudFlare challenge. If it is, it will try again.
@@ -167,7 +166,10 @@ class API {
             }
             else {
                 // Wait for a second
-                await this.wait(1000);
+                await (0, promises_1.setTimeout)(1000);
+            }
+            if (!page) {
+                throw new Error('Page is null!');
             }
             content = await page.content();
             // Sometimes there is a captcha or the browser gets stuck, so an error will be thrown in that case
@@ -189,7 +191,7 @@ class API {
         // These are the headers required to bypass CloudFlare
         const headers = {
             'User-Agent': userAgent,
-            "Cookie": cookieList.map((cookie) => `${cookie.key}=${cookie.value}`).join('; ') // Cookies as a string
+            'Cookie': cookieList.map((cookie) => `${cookie.key}=${cookie.value}`).join('; ') // Cookies as a string
         };
         // No need to use that page anymore.
         await page.close();
@@ -210,11 +212,6 @@ class API {
             expires: expiresDate,
             domain: domain.startsWith('.') ? domain.substring(1) : domain,
             path
-        });
-    }
-    async wait(time) {
-        return new Promise(resolve => {
-            setTimeout(resolve, time);
         });
     }
 }
