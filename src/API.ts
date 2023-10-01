@@ -5,7 +5,7 @@ import { CookieJar, Cookie } from 'tough-cookie';
 
 import { setTimeout as delay } from 'node:timers/promises';
 
-export default class API {
+export class API {
     private requests: RequestMeta[] = [];
 
     private cookies: CookieJar = new CookieJar();

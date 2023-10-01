@@ -1,4 +1,4 @@
-export default class API {
+export declare class API {
     private requests;
     private cookies;
     private options;
