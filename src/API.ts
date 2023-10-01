@@ -243,7 +243,7 @@ export default class API {
     }
 }
 
-interface Options {
+export interface Options {
     headless?: boolean;
     skip_chromium_download?: boolean;
     chromium_path?: string;
