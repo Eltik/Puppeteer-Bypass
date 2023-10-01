@@ -3,6 +3,8 @@ import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { CookieJar, Cookie } from 'tough-cookie';
 
+import { setTimeout as delay } from 'node:timers/promises';
+
 export default class API {
     private requests: Requests[] = [];
 
@@ -173,7 +175,7 @@ export default class API {
                 await page.waitForNetworkIdle({ timeout: timeoutInMs });   
             } else {
                 // Wait for a second
-                await this.wait(1000);
+                await delay(1000);
             }
             if (!page) {
                 throw new Error('Page is null!');
@@ -227,12 +229,6 @@ export default class API {
             expires: expiresDate,
             domain: domain.startsWith('.') ? domain.substring(1) : domain,
             path
-        });
-    }
-
-    private async wait(time:number) {
-        return new Promise(resolve => {
-            setTimeout(resolve, time);
         });
     }
 }
