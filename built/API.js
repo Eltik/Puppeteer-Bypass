@@ -8,7 +8,6 @@ const puppeteer_1 = require("puppeteer");
 const puppeteer_extra_1 = __importDefault(require("puppeteer-extra"));
 const puppeteer_extra_plugin_stealth_1 = __importDefault(require("puppeteer-extra-plugin-stealth"));
 const tough_cookie_1 = require("tough-cookie");
-const promises_1 = require("node:timers/promises");
 class API {
     /**
      * @constructor
@@ -51,6 +50,9 @@ class API {
      * @description Safely closes the browser instance. Not necessary to call this function; just have it for good measure.
      */
     async close() {
+        if (!this.browser) {
+            return;
+        }
         await this.browser.close();
         // Resets the browser variable so that if the object is used again, the browser will be re-initialized
         this.browser = null;
@@ -155,27 +157,21 @@ class API {
         // There's an env variable for this if you want to change it
         const timeoutInMs = Number(process.env.PUP_TIMEOUT) || 16000;
         // Update the HTML content until the CloudFlare challenge loads
-        let count = 1;
+        let count = 0;
         let content = '';
-        while (content === '' || this.isCloudflareJSChallenge(content)) {
-            // Scuffed code.
-            // Basically it will wait for the network to be idle, then get the HTML content and
-            // cbeck if it's a CloudFlare challenge. If it is, it will try again.
-            if (this.options.wait_for_network_idle) {
-                // Sometimes with slow VPS's/computers, the network will never be idle, so this will timeout
-                await page.waitForNetworkIdle({ timeout: timeoutInMs });
+        while (true) {
+            count += 1;
+            if (count === 10) {
+                throw new Error('Cloudflare challenge not resolved after multiple attempts');
             }
-            else {
-                // Wait for a second
-                await (0, promises_1.setTimeout)(1000);
-            }
-            if (!page) {
-                throw new Error('Page is null!');
-            }
+            // Wait for the page to load completely or for Cloudflare challenge to resolve
+            await Promise.race([
+                page.waitForNavigation({ waitUntil: 'networkidle2', timeout: timeoutInMs }),
+                page.waitForFunction(() => !document.body.innerHTML.includes('_cf_chl_opt'), { timeout: timeoutInMs }),
+            ]);
             content = await page.content();
-            // Sometimes there is a captcha or the browser gets stuck, so an error will be thrown in that case
-            if (count++ > 10) {
-                throw new Error('stuck');
+            if (!this.isCloudflareJSChallenge(content)) {
+                break;
             }
         }
         // Fetch the browser's cookies (contains cf_clearance and other important cookies to bypass CloudFlare)
@@ -195,7 +191,9 @@ class API {
             'Cookie': cookieList.map((cookie) => `${cookie.key}=${cookie.value}`).join('; ') // Cookies as a string
         };
         // No need to use that page anymore.
-        await page.close();
+        if (!page) {
+            await page.close();
+        }
         return headers;
     }
     /**
