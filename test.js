@@ -1,4 +1,4 @@
-const API = require("./built/API").default;
+const { API } = require("./built");
 const api = new API({ headless: false });
 console.log("Fetching site justlightnovels.com...");
 api.request("https://www.justlightnovels.com/").then((data) => {
