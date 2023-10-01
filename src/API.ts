@@ -117,7 +117,7 @@ export default class API {
      * @returns Requests object if found, otherwise undefined
      */
     private getRequest(url: string): Requests {
-        const request = this.requests.find((request) => request.url == url);
+        const request = this.requests.find((request) => request.url === url);
         if (request) {
             return request;
         }
@@ -128,7 +128,7 @@ export default class API {
      * @param url URL to remove from the requests array
      */
     private removeRequest(url: string) {
-        const index = this.requests.findIndex((request) => request.url == url);
+        const index = this.requests.findIndex((request) => request.url === url);
         if (index > -1) {
             this.requests.splice(index, 1);
         }
@@ -164,7 +164,7 @@ export default class API {
         // Update the HTML content until the CloudFlare challenge loads
         let count = 1;
         let content = '';
-        while (content == '' || this.isCloudflareJSChallenge(content)) {
+        while (content === '' || this.isCloudflareJSChallenge(content)) {
             // Scuffed code.
             // Basically it will wait for the network to be idle, then get the HTML content and
             // cbeck if it's a CloudFlare challenge. If it is, it will try again.
