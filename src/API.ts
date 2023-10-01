@@ -2,7 +2,6 @@ import { Browser, executablePath } from 'puppeteer';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { CookieJar, Cookie } from 'tough-cookie';
-import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 
 export default class API {
     private requests: Requests[] = [];
@@ -61,55 +60,55 @@ export default class API {
     /**
      * @description First checks if there are any valid cookies for the URL requested. If not, it will request the URL and get the cookies using Puppeteer. If there are valid cookies, it will use those cookies to make the request.
      * @param url Request URL
-     * @param options Axios config. Be careful of of using a custom User-Agent/Cookie header, as it will be overwritten.
-     * @returns Promise<AxiosResponse>
+     * @param options RequestInit config. Be careful of of using a custom User-Agent/Cookie header, as it will be overwritten.
+     * @returns Promise<string>
      */
-    public async request(url: string, options: AxiosRequestConfig = { headers: {} }): Promise<AxiosResponse> {
+    public async request(url: string, options: RequestInit = { headers: {} }): Promise<string> {
         // First check if the request is stored in the object
         const possible = this.getRequest(url);
+
         if (!possible) {
-            const check = await axios(url, options).catch((err) => {
-                // If the request fails, check if it's due to a CloudFlare challenge
-                if (this.isCloudflareJSChallenge(err.response.data)) {
-                    // If it is, this means that we need to fetch new headers.
-                    return null;
-                }
-            });
-            if (!check) {
-                // Fetch headers needed to bypass CloudFlare.
-                const headers = await this.getHeaders(url);
-                this.requests.push({
-                    url: url,
-                    options: options,
-                    cookies: headers.Cookie,
-                    userAgent: headers['User-Agent']
-                })
-                options.headers["User-Agent"] = headers['User-Agent']
-                options.headers["Cookie"] = headers['Cookie']
-                // Send a request with the headers
-                const response = await axios(url, options);
-                return response;
-            } else {
+            const response = await fetch(url, options);
+            const content = await response.text();
+            
+            if (!this.isCloudflareJSChallenge(content)) {
                 // No need to fetch headers, just return the response
-                return check;
+                return content;
             }
-        } else {
-            // Set the headers/cookies to the stored request
-            options.headers["User-Agent"] = possible.userAgent;
-            options.headers["Cookie"] = possible.cookies;
-            // Try to send the request
-            const response = await axios(url, options).catch((err) => {
-                const body = err.response.data;
-                // Check if the error is due to a CloudFlare challenge
-                if (this.isCloudflareJSChallenge(body)) {
-                    // If it is, remove the request (it's invalid)
-                    this.removeRequest(url);
-                    // Try to send the request again with new headers
-                    return this.request(url, options);
-                }
-            });
-            return response;
+
+            // Fetch headers needed to bypass CloudFlare.
+            const headers = await this.getHeaders(url);
+            this.requests.push({
+                url: url,
+                options: options,
+                cookies: headers.Cookie,
+                userAgent: headers['User-Agent']
+            })
+            options.headers["User-Agent"] = headers['User-Agent']
+            options.headers["Cookie"] = headers['Cookie']
+
+            // Send a request with the headers
+            const responseWithHeaders = await fetch(url, options);
+
+            return responseWithHeaders.text();
         }
+
+        // Set the headers/cookies to the stored request
+        options.headers["User-Agent"] = possible.userAgent;
+        options.headers["Cookie"] = possible.cookies;
+        // Try to send the request
+        const response = await fetch(url, options)
+        const content = await response.text();
+
+        // Check if the error is due to a CloudFlare challenge
+        if (this.isCloudflareJSChallenge(content)) {
+            // If it is, remove the request (it's invalid)
+            this.removeRequest(url);
+            // Try to send the request again with new headers
+            return this.request(url, options);
+        }
+        
+        return content;
     }
 
     /**
@@ -247,7 +246,7 @@ interface Options {
 
 interface Requests {
     url: string;
-    options: AxiosRequestConfig;
+    options: RequestInit;
     cookies: CookieJar;
     userAgent: string;
 }
