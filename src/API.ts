@@ -41,7 +41,7 @@ export class API {
             }
         }
         if (this.options.skip_chromium_download) {
-            options['executablePath'] = this.options.chromium_path;
+            options.executablePath = this.options.chromium_path;
         }
 
         // Launches the browser
