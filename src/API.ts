@@ -54,6 +54,10 @@ export class API {
      * @description Safely closes the browser instance. Not necessary to call this function; just have it for good measure.
      */
     public async close() {
+        if (!this.browser) {
+            return;
+        }
+        
         await this.browser.close();
         // Resets the browser variable so that if the object is used again, the browser will be re-initialized
         this.browser = null;
