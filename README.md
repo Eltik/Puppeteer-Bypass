@@ -90,7 +90,7 @@ const bypass2 = new API({ headless: true, skip_chromium_download: false });
 ```javascript
 import API from "./buil/API"
 const bypass = new API();
-// The second parameter is just the default axios config. Use it as if you're using axios
+// The second parameter is just the default fetch config.
 await bypass.request("https://myprotectedsite.com", { method: "PUT",
     headers: {
         Referer: "https://myprotectedsite.com",

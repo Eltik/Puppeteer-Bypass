@@ -1,5 +1,4 @@
-import { AxiosRequestConfig, AxiosResponse } from "axios";
-export default class API {
+export declare class API {
     private requests;
     private cookies;
     private options;
@@ -24,10 +23,14 @@ export default class API {
     /**
      * @description First checks if there are any valid cookies for the URL requested. If not, it will request the URL and get the cookies using Puppeteer. If there are valid cookies, it will use those cookies to make the request.
      * @param url Request URL
-     * @param options Axios config. Be careful of of using a custom User-Agent/Cookie header, as it will be overwritten.
-     * @returns Promise<AxiosResponse>
+     * @param options RequestInit config. Be careful of of using a custom User-Agent/Cookie header, as it will be overwritten.
+     * @returns Promise<string>
      */
-    request(url: string, options?: AxiosRequestConfig): Promise<AxiosResponse>;
+    request(url: string, options?: RequestInit): Promise<{
+        content: string;
+        statusCode: number;
+        headers: Headers;
+    }>;
     /**
      * @description Checks if there is a request object for the URL
      * @param url URL to check for
@@ -48,7 +51,7 @@ export default class API {
     /**
      * @description Gets the headers for the URL requested to bypass CloudFlare
      * @param url URL to fetch
-     * @returns Promise<{ "User-Agent": string, "Cookie": string }>
+     * @returns Promise<{ 'User-Agent': string, 'Cookie': string }>
      */
     private getHeaders;
     /**
@@ -57,12 +60,10 @@ export default class API {
      * @returns Cookie
      */
     private toToughCookie;
-    private wait;
 }
-interface Options {
+export interface Options {
     headless?: boolean;
     skip_chromium_download?: boolean;
     chromium_path?: string;
     wait_for_network_idle?: boolean;
 }
-export {};
