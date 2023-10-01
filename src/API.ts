@@ -6,7 +6,7 @@ import { CookieJar, Cookie } from 'tough-cookie';
 import { setTimeout as delay } from 'node:timers/promises';
 
 export default class API {
-    private requests: Requests[] = [];
+    private requests: RequestMeta[] = [];
 
     private cookies: CookieJar = new CookieJar();
     private options: Options;
@@ -118,11 +118,8 @@ export default class API {
      * @param url URL to check for
      * @returns Requests object if found, otherwise undefined
      */
-    private getRequest(url: string): Requests {
-        const request = this.requests.find((request) => request.url === url);
-        if (request) {
-            return request;
-        }
+    private getRequest(url: string): RequestMeta | undefined {
+        return this.requests.find((request) => request.url === url);
     }
 
     /**
@@ -131,7 +128,8 @@ export default class API {
      */
     private removeRequest(url: string) {
         const index = this.requests.findIndex((request) => request.url === url);
-        if (index > -1) {
+
+        if (index !== -1) {
             this.requests.splice(index, 1);
         }
     }
@@ -240,7 +238,7 @@ interface Options {
     wait_for_network_idle?: boolean;
 }
 
-interface Requests {
+interface RequestMeta {
     url: string;
     options: RequestInit;
     cookies: CookieJar;
