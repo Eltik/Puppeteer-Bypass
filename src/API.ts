@@ -65,7 +65,7 @@ export default class API {
      * @param options RequestInit config. Be careful of of using a custom User-Agent/Cookie header, as it will be overwritten.
      * @returns Promise<string>
      */
-    public async request(url: string, options: RequestInit = { headers: {} }): Promise<string> {
+    public async request(url: string, options: RequestInit = { headers: {} }): Promise<{ content: string, statusCode: number; headers: Headers }> {
         // First check if the request is stored in the object
         const possible = this.getRequest(url);
 
@@ -75,7 +75,11 @@ export default class API {
             
             if (!this.isCloudflareJSChallenge(content)) {
                 // No need to fetch headers, just return the response
-                return content;
+                return {
+                    content,
+                    statusCode: response.status,
+                    headers: response.headers,
+                };
             }
 
             // Fetch headers needed to bypass CloudFlare.
@@ -92,7 +96,11 @@ export default class API {
             // Send a request with the headers
             const responseWithHeaders = await fetch(url, options);
 
-            return responseWithHeaders.text();
+            return {
+                content: await responseWithHeaders.text(),
+                statusCode: responseWithHeaders.status,
+                headers: responseWithHeaders.headers,
+            };
         }
 
         // Set the headers/cookies to the stored request
@@ -110,7 +118,11 @@ export default class API {
             return this.request(url, options);
         }
         
-        return content;
+        return {
+            content,
+            statusCode: response.status,
+            headers: response.headers,
+        };
     }
 
     /**
