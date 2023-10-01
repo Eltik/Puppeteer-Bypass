@@ -65,7 +65,7 @@ export class API {
      * @description First checks if there are any valid cookies for the URL requested. If not, it will request the URL and get the cookies using Puppeteer. If there are valid cookies, it will use those cookies to make the request.
      * @param url Request URL
      * @param options RequestInit config. Be careful of of using a custom User-Agent/Cookie header, as it will be overwritten.
-     * @returns Promise<string>
+     * @returns Promise<{ content: string, statusCode: number; headers: Headers }>
      */
     public async request(url: string, options: RequestInit = { headers: {} }): Promise<{ content: string, statusCode: number; headers: Headers }> {
         // First check if the request is stored in the object
