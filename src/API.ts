@@ -20,7 +20,7 @@ export default class API {
      * @param chromium_path Path to the Chromium binary. Only used if skip_chromium_download is true.
      * @param wait_for_network_idle Whether to wait for the network to be idle before returning the response. This is useful for sites that use AJAX to load content.
      */
-    constructor(options: Options = { headless: false, skip_chromium_download: false, chromium_path: "/usr/bin/chromium-browser", wait_for_network_idle: false }) {
+    constructor(options: Options = { headless: false, skip_chromium_download: false, chromium_path: '/usr/bin/chromium-browser', wait_for_network_idle: false }) {
         this.options = options;
     }
 
@@ -33,17 +33,17 @@ export default class API {
         // These can be optimized more. I just put them here for now.
         const options = {
             headless: this.options.headless,
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
             ignoreHTTPSErrors: true,
             defaultViewport: null,
-            ignoreDefaultArgs: ["--disable-extensions"],
+            ignoreDefaultArgs: ['--disable-extensions'],
             executablePath: executablePath(),
             env: {
-                DISPLAY: ":10.0",
+                DISPLAY: ':10.0',
             }
         }
         if (this.options.skip_chromium_download) {
-            options["executablePath"] = this.options.chromium_path;
+            options['executablePath'] = this.options.chromium_path;
         }
 
         // Launches the browser
@@ -90,8 +90,8 @@ export default class API {
                 cookies: headers.Cookie,
                 userAgent: headers['User-Agent']
             })
-            options.headers["User-Agent"] = headers['User-Agent']
-            options.headers["Cookie"] = headers['Cookie']
+            options.headers['User-Agent'] = headers['User-Agent']
+            options.headers['Cookie'] = headers['Cookie']
 
             // Send a request with the headers
             const responseWithHeaders = await fetch(url, options);
@@ -104,8 +104,8 @@ export default class API {
         }
 
         // Set the headers/cookies to the stored request
-        options.headers["User-Agent"] = possible.userAgent;
-        options.headers["Cookie"] = possible.cookies;
+        options.headers['User-Agent'] = possible.userAgent;
+        options.headers['Cookie'] = possible.cookies;
         // Try to send the request
         const response = await fetch(url, options)
         const content = await response.text();
@@ -158,9 +158,9 @@ export default class API {
     /**
      * @description Gets the headers for the URL requested to bypass CloudFlare
      * @param url URL to fetch
-     * @returns Promise<{ "User-Agent": string, "Cookie": string }>
+     * @returns Promise<{ 'User-Agent': string, 'Cookie': string }>
      */
-    private async getHeaders(url: string): Promise<{ "User-Agent": string, "Cookie": string }> {
+    private async getHeaders(url: string): Promise<{ 'User-Agent': string, 'Cookie': string }> {
         // Check if the browser is open or not
         if (!this.browser) {
             // Launch the browser
@@ -213,7 +213,7 @@ export default class API {
         // These are the headers required to bypass CloudFlare
         const headers = {
             'User-Agent': userAgent, // Browser User-Agent
-            "Cookie": cookieList.map((cookie) => `${cookie.key}=${cookie.value}`).join('; ') // Cookies as a string
+            'Cookie': cookieList.map((cookie) => `${cookie.key}=${cookie.value}`).join('; ') // Cookies as a string
         };
 
         // No need to use that page anymore.
