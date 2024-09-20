@@ -1,8 +1,8 @@
 <h3>
         <h3>CapSolver.com</h3>
         <br>
-        <a href="https://dashboard.capsolver.com/passport/register?inviteCode=G2QOL-c1l_7z">
-            <img src="https://cdn.discordapp.com/attachments/1105172394655625306/1105180101802471575/20221207-160749.gif" alt="Capsolver's Banner">
+        <a href="https://www.capsolver.com/?utm_source=github&utm_medium=ads&utm_campaign=scraping&utm_term=Puppeteer-Bypass">
+            <img width="960" alt="CapSolver Ads" src="https://github.com/user-attachments/assets/5ad9174c-b5cb-4e8c-8311-20de87a7d901">
         </a>
 </h3>
 <br />
