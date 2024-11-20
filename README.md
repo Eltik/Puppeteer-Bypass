@@ -2,7 +2,7 @@
         <h3>CapSolver.com</h3>
         <br>
         <a href="https://www.capsolver.com/?utm_source=github&utm_medium=ads&utm_campaign=scraping&utm_term=Puppeteer-Bypass">
-            ![photo_2024-11-19_08-51-40](https://github.com/user-attachments/assets/3d6ea75f-85d1-4301-9dfa-e8842dd64851)
+            <img src="https://github.com/user-attachments/assets/3d6ea75f-85d1-4301-9dfa-e8842dd64851" />
         </a>
 </h3>
 <br />
